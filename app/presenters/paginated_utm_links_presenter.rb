@@ -60,7 +60,19 @@ class PaginatedUtmLinksPresenter
       ).squish, query: "%#{query}%")
     end
 
-    scope = scope.order(Arel.sql("#{sort_key} #{sort_direction}"))
+\
+    63	    # Safely handle sorting by validating against allowed keys and directions
+    64	    allowed_sort_directions = {'asc' => 'ASC', 'desc' => 'DESC'}
+    65	
+    66	    sort_column = SORT_KEY_TO_COLUMN_MAP[sort_key]
+    67	    sort_order = allowed_sort_directions[sort_direction.to_s.downcase]
+    68	
+    69	    if sort_column && sort_order
+    70	      scope = scope.order(\"#{sort_column} #{sort_order}\")
+    71	    else
+    72	      # Default sorting if invalid parameters are provided
+    73	      scope = scope.order('utm_links.created_at DESC')
+    74	    end
 
     pagination, links = pagy(scope, page:, limit: PER_PAGE, overflow: :last_page)
 
